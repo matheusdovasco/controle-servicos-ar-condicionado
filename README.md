@@ -2,7 +2,7 @@
 
 Sistema para cadastrar e acompanhar serviços de instalação, limpeza e manutenção de ar condicionado. O projeto nasceu da minha rotina de trabalho na área e da vontade de aplicar o que estou aprendendo no curso de Análise e Desenvolvimento de Sistemas.
 
-**Site online:** https://matheusdovasco.github.io/controle-servicos-ar-condicionado/
+**Site online:** https://viniciusbuilds-code.github.io/controle-servicos-ar-condicionado/
 
 ## Versão web (index.html)
 
