@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Controle de Serviços de Ar Condicionado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef3f5;--card:#fff;--ink:#12303b;--mut:#5d7480;--line:#d5e0e5;--acc:#1590ad;--acc-ink:#fff;--ok:#1f8a5b;--warn:#b9741a;--bad:#b3392f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1f;--card:#16262d;--ink:#e6f0f3;--mut:#8fa6b0;--line:#27404a;--acc:#4cc3de;--acc-ink:#07242c;--ok:#52c796;--warn:#e9b25f;--bad:#f08a80}}
+:root[data-theme="dark"]{--bg:#0e1a1f;--card:#16262d;--ink:#e6f0f3;--mut:#8fa6b0;--line:#27404a;--acc:#4cc3de;--acc-ink:#07242c;--ok:#52c796;--warn:#e9b25f;--bad:#f08a80}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Source Sans 3",system-ui,sans-serif}
+h1,h2,.num{font-family:"Familjen Grotesk","Segoe UI",sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:1.6rem;margin:0;line-height:1.2}
+header p{margin:2px 0 0;color:var(--mut);font-size:.95rem}
+button,input,select{font:inherit;color:inherit}
+.btn{background:var(--acc);color:var(--acc-ink);border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:5px 10px;font-size:.85rem;border-radius:6px}
+.btn.danger{color:var(--bad)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat span{color:var(--mut);font-size:.85rem}
+.stat .num{display:block;font-size:1.55rem;font-weight:700;margin-top:2px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:1.1rem;margin:0 0 12px}
+#chart{width:100%;height:auto;display:block}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:12px}
+input,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{text-align:left;font-size:.85rem;color:var(--mut);font-weight:600;padding:8px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.val{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.8rem;font-weight:600;border:1px solid currentColor}
+.tag.pago{color:var(--ok)}.tag.pend{color:var(--warn)}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.empty{text-align:center;padding:28px 8px;color:var(--mut)}
+.empty .btn{margin-top:10px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);padding:20px;width:min(440px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{margin:0 0 12px;font-size:1.2rem}
+label{display:block;font-size:.9rem;font-weight:600;margin:10px 0 4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.end{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.err{color:var(--bad);font-size:.85rem;min-height:1.2em;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+@media(max-width:640px){
+.filters{grid-template-columns:1fr}
+table,tbody,tr,td{display:block;min-width:0}thead{display:none}
+tr{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+td{border:0;padding:3px 0}
+td[data-l]::before{content:attr(data-l) ": ";color:var(--mut)}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div><h1>Controle de Serviços</h1><p>Instalação, limpeza e manutenção de ar condicionado</p></div>
+ <div class="bar">
+  <button class="btn" id="novo">Novo serviço</button>
+  <button class="btn ghost" id="csv">Exportar Excel</button>
+ </div>
+</header>
+
+<section class="stats" aria-label="Resumo do mês">
+ <div class="stat"><span>Faturado no mês</span><b class="num" id="sFat">R$ 0,00</b></div>
+ <div class="stat"><span>Recebido</span><b class="num" id="sRec">R$ 0,00</b></div>
+ <div class="stat"><span>A receber</span><b class="num" id="sPen">R$ 0,00</b></div>
+ <div class="stat"><span>Serviços no mês</span><b class="num" id="sQtd">0</b></div>
+</section>
+
+<section class="panel"><h2>Faturamento dos últimos 6 meses</h2><svg id="chart" viewBox="0 0 600 190" role="img" aria-label="Gráfico de faturamento por mês"></svg></section>
+
+<section class="panel">
+ <h2>Serviços</h2>
+ <div class="filters">
+  <input id="busca" type="search" placeholder="Buscar por cliente ou telefone" aria-label="Buscar">
+  <select id="fTipo" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option><option>Instalação</option><option>Limpeza</option><option>Manutenção</option></select>
+  <select id="fStatus" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="p">Pagos</option><option value="n">Pendentes</option></select>
+ </div>
+ <div class="tbl"><table><thead><tr><th>Data</th><th>Cliente</th><th>Telefone</th><th>Tipo</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead><tbody id="lista"></tbody></table></div>
+ <div class="empty" id="vazio" hidden></div>
+</section>
+</div>
+
+<dialog id="dlg">
+ <h2 id="dlgT">Novo serviço</h2>
+ <label for="fCli">Nome do cliente</label><input id="fCli" autocomplete="off">
+ <label for="fTel">Telefone</label><input id="fTel" inputmode="tel" placeholder="(11) 90000-0000">
+ <div class="row">
+  <div><label for="fTp">Tipo</label><select id="fTp"><option>Instalação</option><option>Limpeza</option><option>Manutenção</option></select></div>
+  <div><label for="fDt">Data</label><input id="fDt" type="date"></div>
+ </div>
+ <label for="fVl">Valor (R$)</label><input id="fVl" inputmode="decimal" placeholder="150,00">
+ <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input id="fPg" type="checkbox" style="width:auto"> Já foi pago</label>
+ <div class="err" id="err" role="alert"></div>
+ <div class="end"><button class="btn ghost" id="cancela">Cancelar</button><button class="btn" id="salva">Salvar serviço</button></div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+const KEY="servicos-ar-condicionado";
+let dados=[],editId=null;
+const $=id=>document.getElementById(id);
+const brl=n=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dBR=iso=>iso.split("-").reverse().join("/");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function load(){try{dados=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){dados=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(dados))}catch(e){toast("Não foi possível salvar neste navegador.")}}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2200)}
+
+function render(){
+ const hoje=new Date().toISOString().slice(0,7);
+ const mes=dados.filter(s=>s.data.startsWith(hoje));
+ const fat=mes.reduce((a,s)=>a+s.valor,0),rec=mes.filter(s=>s.pago).reduce((a,s)=>a+s.valor,0);
+ $("sFat").textContent=brl(fat);$("sRec").textContent=brl(rec);$("sPen").textContent=brl(fat-rec);$("sQtd").textContent=mes.length;
+ chart();
+ const q=$("busca").value.trim().toLowerCase(),tp=$("fTipo").value,st=$("fStatus").value;
+ const f=dados.filter(s=>(!q||s.cliente.toLowerCase().includes(q)||s.telefone.includes(q))&&(!tp||s.tipo===tp)&&(!st||(st==="p")===s.pago)).sort((a,b)=>b.data.localeCompare(a.data));
+ $("lista").innerHTML=f.map(s=>`<tr>
+  <td data-l="Data">${dBR(s.data)}</td><td data-l="Cliente"><b>${esc(s.cliente)}</b></td><td data-l="Telefone">${esc(s.telefone)}</td>
+  <td data-l="Tipo">${s.tipo}</td><td class="val" data-l="Valor">${brl(s.valor)}</td>
+  <td><span class="tag ${s.pago?"pago":"pend"}">${s.pago?"Pago":"Pendente"}</span></td>
+  <td><div class="acts"><button class="btn ghost sm" data-a="pg" data-id="${s.id}">${s.pago?"Marcar pendente":"Marcar pago"}</button><button class="btn ghost sm" data-a="ed" data-id="${s.id}">Editar</button><button class="btn ghost sm danger" data-a="ex" data-id="${s.id}">Excluir</button></div></td></tr>`).join("");
+ const v=$("vazio");v.hidden=f.length>0;
+ v.innerHTML=dados.length?"Nenhum serviço encontrado com esses filtros.":'Você ainda não cadastrou nenhum serviço.<br><button class="btn" id="demo">Carregar exemplos</button>';
+}
+
+function chart(){
+ const meses=[],hoje=new Date();
+ for(let i=5;i>=0;i--){const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);meses.push({k:d.toISOString().slice(0,7),l:d.toLocaleDateString("pt-BR",{month:"short"}).replace(".","")})}
+ meses.forEach(m=>m.t=dados.filter(s=>s.data.startsWith(m.k)).reduce((a,s)=>a+s.valor,0));
+ const max=Math.max(...meses.map(m=>m.t),1);
+ $("chart").innerHTML=meses.map((m,i)=>{const h=Math.round(m.t/max*120),x=20+i*95;
+  return `<rect x="${x}" y="${150-h}" width="60" height="${h}" rx="5" fill="var(--acc)" opacity="${i===5?1:.55}"/>
+  <text x="${x+30}" y="170" text-anchor="middle" font-size="13" fill="var(--mut)">${m.l}</text>
+  <text x="${x+30}" y="${Math.max(144-h,12)}" text-anchor="middle" font-size="12" fill="var(--ink)">${m.t?brl(m.t).replace(/\u00a0/g," ").replace(",00",""):""}</text>`}).join("");
+}
+
+function abrir(s){
+ editId=s?s.id:null;$("dlgT").textContent=s?"Editar serviço":"Novo serviço";$("err").textContent="";
+ $("fCli").value=s?s.cliente:"";$("fTel").value=s?s.telefone:"";$("fTp").value=s?s.tipo:"Instalação";
+ $("fDt").value=s?s.data:new Date().toISOString().slice(0,10);$("fVl").value=s?String(s.valor).replace(".",","):"";$("fPg").checked=s?s.pago:false;
+ $("dlg").showModal();$("fCli").focus();
+}
+function salvar(){
+ const cli=$("fCli").value.trim(),tel=$("fTel").value.trim(),dt=$("fDt").value,vl=parseFloat($("fVl").value.replace(/\./g,"").replace(",","."));
+ if(!cli)return $("err").textContent="Informe o nome do cliente.";
+ if(!dt)return $("err").textContent="Escolha a data do serviço.";
+ if(isNaN(vl)||vl<0)return $("err").textContent="Digite um valor válido, como 150,00.";
+ const reg={cliente:cli,telefone:tel,tipo:$("fTp").value,data:dt,valor:vl,pago:$("fPg").checked};
+ if(editId){Object.assign(dados.find(s=>s.id===editId),reg)}else{reg.id=Date.now();dados.push(reg)}
+ save();$("dlg").close();render();toast("Serviço salvo");
+}
+
+$("novo").onclick=()=>abrir();
+$("cancela").onclick=()=>$("dlg").close();
+$("salva").onclick=salvar;
+["busca","fTipo","fStatus"].forEach(i=>$(i).addEventListener("input",render));
+document.addEventListener("click",e=>{
+ if(e.target.id==="demo"){const h=new Date(),m=n=>new Date(h.getFullYear(),h.getMonth()-n,10).toISOString().slice(0,10);
+  dados=[["Carlos Mendes","(11) 94000-1111","Instalação",m(0),450,1],["Ana Souza","(11) 95000-2222","Limpeza",m(0),180,0],["Padaria Pão Quente","(11) 3000-3333","Manutenção",m(1),320,1],["Roberto Lima","(11) 96000-4444","Instalação",m(2),500,1],["Júlia Prado","(11) 97000-5555","Limpeza",m(3),150,1]].map((a,i)=>({id:i+1,cliente:a[0],telefone:a[1],tipo:a[2],data:a[3],valor:a[4],pago:!!a[5]}));
+  save();render();return}
+ const b=e.target.closest("[data-a]");if(!b)return;
+ const id=+b.dataset.id,s=dados.find(x=>x.id===id);
+ if(b.dataset.a==="ed")abrir(s);
+ if(b.dataset.a==="pg"){s.pago=!s.pago;save();render()}
+ if(b.dataset.a==="ex"&&confirm("Excluir o serviço de "+s.cliente+"?")){dados=dados.filter(x=>x.id!==id);save();render();toast("Serviço excluído")}
+});
+$("csv").onclick=()=>{
+ if(!dados.length)return toast("Não há serviços para exportar.");
+ const l=["Data;Cliente;Telefone;Tipo;Valor;Pago"].concat(dados.map(s=>[dBR(s.data),s.cliente,s.telefone,s.tipo,s.valor.toFixed(2).replace(".",","),s.pago?"Sim":"Não"].join(";")));
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+l.join("\n")],{type:"text/csv"}));a.download="servicos.csv";a.click();
+};
+load();render();
+</script>
+</body>
+</html>
