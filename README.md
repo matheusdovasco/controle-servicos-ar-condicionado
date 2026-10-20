@@ -35,4 +35,4 @@ Para rodar:
 
 Vinicius Matheus de Souza Alves
 Estudante de Análise e Desenvolvimento de Sistemas (UNIP)
-LinkedIn: https://www.linkedin.com/in/matheus-alves-36544518a
+    LinkedIn: linkedin.com/in/vinicius-matheus-36544518a
